@@ -1,5 +1,8 @@
-git Test
+﻿git Test
 
+<<<<<<< HEAD
 update
 
-asdfsfd
+
+update    -----깃에서 수정
+>>>>>>> d9fe4e6b304922e4677568661a140a137259b084
