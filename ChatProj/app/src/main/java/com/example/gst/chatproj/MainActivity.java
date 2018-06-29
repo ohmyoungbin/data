@@ -5,10 +5,10 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -81,6 +81,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void initViews() {
         listView = (RecyclerView) findViewById(R.id.listView);
+        listView.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
+        listView.setHasFixedSize(true);
+
         // 기본 Text를 담을 수 있는 simple_list_item_1을 사용해서 ArrayAdapter를 만들고 listview에 설정
         adapter = new ChatAdapter(mItems);
 
@@ -93,6 +96,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         sendBtn = (Button) findViewById(R.id.sendBtn);
         sendBtn.setOnClickListener(this);
         editTxt = (EditText) findViewById(R.id.editText);
+
+        sendBtn.setVisibility(View.INVISIBLE);
+        editTxt.setVisibility(View.INVISIBLE);
 
         mBtnGoogleSignIn = (SignInButton) findViewById(R.id.btn_google_signin);
         mBtnGoogleSignOut = (Button) findViewById(R.id.btn_google_signout);
@@ -123,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mItems.add(chatData);
                 listView.smoothScrollToPosition(adapter.getItemCount());
 
-                 //리스트 갱신
+                //리스트 갱신
                 adapter.notifyData(mItems);
 
             }
@@ -155,19 +161,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void initFirebaseAuth(){
         mAuth = FirebaseAuth.getInstance();
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                    .requestIdToken(getString(R.string.default_web_client_id))
-                                    .requestEmail()
-                                    .build();
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
-                            .enableAutoManage(this, new GoogleApiClient.OnConnectionFailedListener() {
-                                @Override
-                                public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                .enableAutoManage(this, new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override
+                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
-                                }
-                            })
-                            .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                            .build();
+                    }
+                })
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -179,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void updateProfile(){
         FirebaseUser user = mAuth.getCurrentUser();
-        Log.d("updateProfile","-------------------------------------");
+
         if (user == null) {
             // 비 로그인 상태 (메시지를 전송할 수 없다.)
             mBtnGoogleSignIn.setVisibility(View.VISIBLE);
@@ -187,18 +193,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mTxtProfileInfo.setVisibility(View.GONE);
             mImgProfile.setVisibility(View.GONE);
             findViewById(R.id.sendBtn).setVisibility(View.GONE);
+            findViewById(R.id.editText).setVisibility(View.GONE);
+
             adapter.setmMyEmail(null);
 
             adapter.notifyData(mItems);
             adapter.notifyDataSetChanged();
-            Log.d("비로그인..","ㅇㅇㅇ--------");
+
         } else {
             // 로그인 상태
             mBtnGoogleSignIn.setVisibility(View.GONE);
             mBtnGoogleSignOut.setVisibility(View.VISIBLE);
             mTxtProfileInfo.setVisibility(View.VISIBLE);
             mImgProfile.setVisibility(View.VISIBLE);
+
             findViewById(R.id.sendBtn).setVisibility(View.VISIBLE);
+            findViewById(R.id.editText).setVisibility(View.VISIBLE);
 
             userName = user.getDisplayName(); // 채팅에 사용 될 닉네임 설정
             String email = user.getEmail();
@@ -210,7 +220,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             adapter.notifyDataSetChanged();
 
             Picasso.with(this).load(user.getPhotoUrl()).into(mImgProfile);
-            Log.d("로그인","ㅇㅇㅇ//"+user.toString());
+
         }
     }
 
@@ -234,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     databaseReference.child("message").push().setValue(chatData);
                 }
 
-            break;
+                break;
             case R.id.btn_google_signin:
                 signIn();
                 break;
@@ -252,14 +262,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //로그아웃
     private void signOut(){
-            mAuth.signOut();
-            Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
-                    new ResultCallback<Status>() {
-                        @Override
-                        public void onResult(@NonNull Status status) {
-                            updateProfile();
-                        }
-                    });
+        mAuth.signOut();
+        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
+                new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(@NonNull Status status) {
+                        updateProfile();
+                    }
+                });
     }
 
 
@@ -286,11 +296,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 }
                             }
                         });
-                Toast.makeText(MainActivity.this, "onActivityResult-----isSuccess",
-                        Toast.LENGTH_SHORT).show();
+
             } else {
-                Toast.makeText(MainActivity.this, "onActivityResult---실패",
-                        Toast.LENGTH_SHORT).show();
                 updateProfile();
             }
         }
